@@ -1,4 +1,4 @@
-import { DateTime } from 'luxon';
+import { DateTime, Interval, Duration } from 'luxon';
 
 // Cache the list of supported timezones to avoid redundant calls
 const validTimezones = Intl.supportedValuesOf('timeZone');
@@ -31,7 +31,7 @@ export async function onRequest(context) {
   const { request } = context;
 
   const corsHeaders = {
-    "Access-Control-Allow-Origin": "*", // Adjust as needed for security
+    "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
   };
@@ -41,11 +41,11 @@ export async function onRequest(context) {
   }
 
   const cacheKey = generateCacheKey(request.url);
-
   const currentTime = Date.now();
+
   if (responseCache.has(cacheKey)) {
     const { response, timestamp } = responseCache.get(cacheKey);
-    if (currentTime - timestamp <= 1000) { // Cache valid for 1 second
+    if (currentTime - timestamp <= 1000) {
       return new Response(JSON.stringify(response, null, 2), {
         status: 200,
         headers: { 
@@ -90,17 +90,6 @@ export async function onRequest(context) {
     });
   }
 
-  const timezonePattern = /^[A-Za-z_]+\/[A-Za-z_]+(?:\/[A-Za-z_]+)*$/;
-  if (!timezonePattern.test(timezone)) {
-    return new Response(JSON.stringify({ error: "Invalid timezone format. Please provide a valid IANA timezone identifier." }), {
-      status: 400,
-      headers: { 
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
-    });
-  }
-
   if (!validTimezones.includes(timezone)) {
     return new Response(JSON.stringify({ error: `Invalid timezone '${timezone}'. Please provide a valid IANA timezone identifier.` }), {
       status: 400,
@@ -112,23 +101,27 @@ export async function onRequest(context) {
   }
 
   try {
-    const utcDate = new Date();
-
-    const localISOString = getLocalISOString(utcDate, timezone);
-    const offset = calculateUTCOffset(utcDate, timezone);
-    const tzAbbreviation = getTimezoneAbbreviation(utcDate, timezone);
-    const dayOfWeek = getDayOfWeek(utcDate, timezone);
-    const isoWeekNumber = getISOWeekNumber(utcDate, timezone);
+    const utcNow = DateTime.utc();
+    const localNow = utcNow.setZone(timezone);
 
     const response = {
-      local_time: localISOString,
-      utc_time: utcDate.toISOString(),
+      local_time: localNow.toISO(),
+      utc_time: utcNow.toISO(),
       timezone: timezone,
-      offset: offset,
-      timezone_abbreviation: tzAbbreviation,
-      day_of_week: dayOfWeek,
-      iso_week_number: isoWeekNumber,
-      timestamp_milliseconds: utcDate.getTime(),
+      offset: localNow.offsetNameShort, // e.g., 'UTC+1'
+      offset_minutes: localNow.offset,
+      timezone_abbreviation: localNow.toFormat('ZZZ'), // e.g., 'PDT'
+      day_of_week: localNow.toFormat('EEEE'), // Full day name
+      ordinal_date: localNow.toFormat('o'), // Ordinal day of the year
+      iso_week: localNow.weekNumber,
+      iso_year: localNow.weekYear,
+      days_in_month: localNow.daysInMonth,
+      days_in_year: localNow.daysInYear,
+      is_leap_year: localNow.isInLeapYear,
+      start_of_day: localNow.startOf('day').toISO(),
+      end_of_day: localNow.endOf('day').toISO(),
+      duration_since_utc: Duration.fromObject({ milliseconds: localNow.diff(utcNow).toMillis() }).toHuman(),
+      timestamp_milliseconds: localNow.toMillis(),
     };
 
     responseCache.set(cacheKey, { response, timestamp: currentTime });
@@ -152,59 +145,4 @@ export async function onRequest(context) {
       },
     });
   }
-}
-
-/**
- * Converts the UTC date to the local ISO string in the specified timezone.
- * @param {Date} date - The current UTC date.
- * @param {string} timezone - The IANA timezone identifier.
- * @returns {string} - The local time in ISO 8601 format with timezone offset.
- */
-function getLocalISOString(date, timezone) {
-  return DateTime.fromJSDate(date, { zone: timezone }).toISO();
-}
-
-/**
- * Calculates the UTC offset for a given date and timezone.
- * @param {Date} date - The current UTC date.
- * @param {string} timezone - The IANA timezone identifier.
- * @returns {string} - The UTC offset in "+HH:MM" or "-HH:MM" format.
- */
-function calculateUTCOffset(date, timezone) {
-  const offset = DateTime.fromJSDate(date, { zone: timezone }).offset;
-  const sign = offset >= 0 ? '+' : '-';
-  const absOffset = Math.abs(offset);
-  const hours = String(Math.floor(absOffset / 60)).padStart(2, '0');
-  const minutes = String(absOffset % 60).padStart(2, '0');
-  return `UTC${sign}${hours}:${minutes}`;
-}
-
-/**
- * Retrieves the timezone abbreviation.
- * @param {Date} date - The current UTC date.
- * @param {string} timezone - The IANA timezone identifier.
- * @returns {string} - The timezone abbreviation.
- */
-function getTimezoneAbbreviation(date, timezone) {
-  return DateTime.fromJSDate(date, { zone: timezone }).toFormat('ZZZ');
-}
-
-/**
- * Retrieves the day of the week for the local date in the specified timezone.
- * @param {Date} date - The current UTC date.
- * @param {string} timezone - The IANA timezone identifier.
- * @returns {string} - The day of the week.
- */
-function getDayOfWeek(date, timezone) {
-  return DateTime.fromJSDate(date, { zone: timezone }).toFormat('EEEE');
-}
-
-/**
- * Helper function to get ISO Week Number
- * @param {Date} date - The current UTC date.
- * @param {string} timezone - The IANA timezone identifier.
- * @returns {number} - The ISO week number.
- */
-function getISOWeekNumber(date, timezone) {
-  return DateTime.fromJSDate(date, { zone: timezone }).weekNumber;
 }
