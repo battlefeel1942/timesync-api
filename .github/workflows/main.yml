@@ -1,13 +1,13 @@
-name: Generate Lock File and Install Luxon
+name: Generate Lock File and Add Dependencies
 
 on:
   push:
     branches:
       - main # Trigger on pushes to the main branch
-  workflow_dispatch: # Allows manual trigger of the workflow
+  workflow_dispatch: # Allow manual trigger
 
 jobs:
-  build-and-commit:
+  create-lock-file-and-install:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,18 +17,20 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: 16 # Specify Node.js version
+        node-version: 16 # Specify your Node.js version
         cache: 'npm'
 
-    - name: Check for package-lock.json
-      id: check-lock-file
+    - name: Ensure package-lock.json exists
       run: |
         if [ ! -f package-lock.json ]; then
-          echo "package-lock.json is missing. Generating it..."
-          npm install
+          echo "{}" > package-lock.json
+          echo "Created an empty package-lock.json file."
         else
           echo "package-lock.json already exists."
         fi
+
+    - name: Install dependencies
+      run: npm install
 
     - name: Install Luxon
       run: npm install luxon --save
