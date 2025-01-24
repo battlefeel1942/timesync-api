@@ -1,0 +1,5 @@
+name = "time-sync-api"
+type = "javascript"  # This line can be removed based on warnings below
+
+# Specify the build output directory for Cloudflare Pages
+pages_build_output_dir = "public"

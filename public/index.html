@@ -1,0 +1,210 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Time Sync API</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+
+    <!-- Inline style for applying Roboto as the font-family throughout -->
+  <style>
+    html {
+      font-family: 'Roboto', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800 leading-relaxed p-4 sm:p-6 md:p-8">
+
+
+      <div class="mx-auto max-w-3xl p-6 mb-3 sm:p-8 text-center">
+
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-6">
+            Time Sync API
+          </h1>
+          <p class="mb-3 ">
+              Use this API to fetch comprehensive date and time details for a given timezone; requests are subject to standard rate-limiting to maintain fair usage and overall service stability.
+          </p>
+          <a 
+          href="/api?timezone=Pacific/Auckland" 
+          class="inline-block px-4 py-2 mt-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 transition-colors"
+        >
+          Example for Pacific/Auckland
+        </a>          
+      
+      </div>
+
+
+
+
+  <div class="mx-auto max-w-3xl bg-white p-6 sm:p-8 rounded-md shadow-md">
+
+    <h2 class="text-xl md:text-2xl font-semibold text-gray-800 mb-4">
+      Usage
+    </h2>
+    <p class="mb-4">
+      Send a GET request to the following endpoint: 
+      <code class="bg-gray-100 p-1 rounded text-red-600 font-mono">/api?timezone=Pacific/Auckland</code>
+    </p>
+
+    
+    <h2 class="text-xl md:text-2xl font-semibold text-gray-800 mb-4 mt-8">
+      Parameters
+    </h2>
+    <ul class="list-disc list-inside ml-4 mb-6">
+      <li>
+        <strong>timezone</strong> (required): The timezone identifier (e.g., 
+        <code class="bg-gray-100 p-1 rounded text-red-600 font-mono">Pacific/Auckland</code>).
+      </li>
+    </ul>
+    
+    <h2 class="text-xl md:text-2xl font-semibold text-gray-800 mb-4 mt-8">
+      Response Example
+    </h2>
+    <pre class="bg-gray-100 p-4 rounded-md overflow-auto max-h-96 text-sm font-mono whitespace-pre-wrap break-words mb-8">
+{
+  "local_time": "2025-01-24T13:54:44+13:00",
+  "utc_time": "2025-01-24T00:54:44.617Z",
+  "timezone": "Pacific/Auckland",
+  "offset": "UTC+13:00",
+  "offset_milliseconds": 46800000,
+  "timezone_abbreviation": "GMT+13",
+  "day_of_week": "Friday",
+  "iso_week_number": 4,
+  "timestamp_milliseconds": 1737680084617
+}
+    </pre>
+    
+    <h2 class="text-xl md:text-2xl font-semibold text-gray-800 mb-4 mt-8">
+      Response Fields
+    </h2>
+    <div class="overflow-auto mb-8">
+      <table class="min-w-full border border-gray-300 rounded-md shadow-sm">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="p-3 text-left font-bold border-b border-gray-300">Field</th>
+            <th class="p-3 text-left font-bold border-b border-gray-300">Description</th>
+          </tr>
+        </thead>
+        <tbody class="[&>tr:nth-child(even)]:bg-gray-50">
+          <tr class="hover:bg-gray-100">
+            <td class="p-3 border-b border-gray-200">
+              <code class="bg-gray-100 p-1 rounded text-red-600 font-mono">local_time</code>
+            </td>
+            <td class="p-3 border-b border-gray-200">
+              The current local time in the specified timezone (ISO 8601 format).
+            </td>
+          </tr>
+          <tr class="hover:bg-gray-100">
+            <td class="p-3 border-b border-gray-200">
+              <code class="bg-gray-100 p-1 rounded text-red-600 font-mono">utc_time</code>
+            </td>
+            <td class="p-3 border-b border-gray-200">
+              The current Coordinated Universal Time (UTC) in ISO 8601 format.
+            </td>
+          </tr>
+          <tr class="hover:bg-gray-100">
+            <td class="p-3 border-b border-gray-200">
+              <code class="bg-gray-100 p-1 rounded text-red-600 font-mono">timezone</code>
+            </td>
+            <td class="p-3 border-b border-gray-200">
+              The IANA timezone identifier provided in the request.
+            </td>
+          </tr>
+          <tr class="hover:bg-gray-100">
+            <td class="p-3 border-b border-gray-200">
+              <code class="bg-gray-100 p-1 rounded text-red-600 font-mono">offset</code>
+            </td>
+            <td class="p-3 border-b border-gray-200">
+              The UTC offset of the specified timezone (e.g., UTC+13:00).
+            </td>
+          </tr>
+          <tr class="hover:bg-gray-100">
+            <td class="p-3 border-b border-gray-200">
+              <code class="bg-gray-100 p-1 rounded text-red-600 font-mono">offset_milliseconds</code>
+            </td>
+            <td class="p-3 border-b border-gray-200">
+              The UTC offset in milliseconds for the specified timezone.
+            </td>
+          </tr>
+          <tr class="hover:bg-gray-100">
+            <td class="p-3 border-b border-gray-200">
+              <code class="bg-gray-100 p-1 rounded text-red-600 font-mono">timezone_abbreviation</code>
+            </td>
+            <td class="p-3 border-b border-gray-200">
+              The abbreviation of the timezone (e.g., GMT+13).
+            </td>
+          </tr>
+          <tr class="hover:bg-gray-100">
+            <td class="p-3 border-b border-gray-200">
+              <code class="bg-gray-100 p-1 rounded text-red-600 font-mono">day_of_week</code>
+            </td>
+            <td class="p-3 border-b border-gray-200">
+              The current day of the week in the specified timezone.
+            </td>
+          </tr>
+          <tr class="hover:bg-gray-100">
+            <td class="p-3 border-b border-gray-200">
+              <code class="bg-gray-100 p-1 rounded text-red-600 font-mono">iso_week_number</code>
+            </td>
+            <td class="p-3 border-b border-gray-200">
+              The ISO week number for the current date in the specified timezone.
+            </td>
+          </tr>
+          <tr class="hover:bg-gray-100">
+            <td class="p-3 border-b border-gray-200">
+              <code class="bg-gray-100 p-1 rounded text-red-600 font-mono">timestamp_milliseconds</code>
+            </td>
+            <td class="p-3 border-b border-gray-200">
+              The Unix timestamp in milliseconds for the current time in the specified timezone.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <h2 class="text-xl md:text-2xl font-semibold text-gray-800 mb-4 mt-8">
+      Error Responses
+    </h2>
+    <pre class="bg-gray-100 p-4 rounded-md overflow-auto max-h-96 text-sm font-mono whitespace-pre-wrap break-words mb-8">
+{
+  "error": "Missing 'timezone' query parameter."
+}
+
+{
+  "error": "Invalid timezone provided."
+}
+    </pre>
+    
+    <h2 class="text-xl md:text-2xl font-semibold text-gray-800 mb-4 mt-8">
+      List of Supported Timezones
+    </h2>
+    <p class="mb-4">
+      The following is a comprehensive list of all supported IANA timezones:
+    </p>
+    <pre id="timezone-list" class="bg-gray-100 p-4 rounded-md overflow-auto max-h-96 text-sm font-mono whitespace-pre-wrap break-words"><code>// Loading timezones...</code></pre>
+
+  </div>
+  
+  <script>
+    // Function to retrieve and display the list of supported IANA timezones
+    function displayTimezones() {
+      // Check if Intl.supportedValuesOf is supported
+      if (typeof Intl.supportedValuesOf === 'function') {
+        const timezones = Intl.supportedValuesOf('timeZone');
+        const timezoneCode = document.querySelector('#timezone-list code');
+        
+        // Join with newline characters
+        timezoneCode.textContent = timezones.join('\n');
+      } else {
+        const timezoneCode = document.querySelector('#timezone-list code');
+        timezoneCode.textContent = 'Intl.supportedValuesOf is not supported in this browser.';
+      }
+    }
+    
+    // Execute the function after the DOM is fully loaded
+    document.addEventListener('DOMContentLoaded', displayTimezones);
+  </script>
+</body>
+</html>

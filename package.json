@@ -1,0 +1,10 @@
+{
+  "name": "time-sync-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "functions/api.js",
+  "scripts": {
+    "build": "echo 'No build step required'",
+    "start": "echo 'No start script needed for Cloudflare Pages'"
+  }
+}

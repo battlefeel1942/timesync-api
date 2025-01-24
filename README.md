@@ -1,1 +1,1 @@
-# timesync-api
+# time-sync-api
