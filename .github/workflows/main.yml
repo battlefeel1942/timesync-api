@@ -20,13 +20,6 @@ jobs:
         node-version: 16
         cache: 'npm'
 
-    - name: Create empty package-lock.json (if missing)
-      run: |
-        if [ ! -f package-lock.json ]; then
-          echo "{}" > package-lock.json
-          echo "Created an empty package-lock.json file."
-        fi
-
     - name: Install dependencies
       run: npm install
 
