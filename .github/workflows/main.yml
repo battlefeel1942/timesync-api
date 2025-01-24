@@ -3,7 +3,7 @@ name: Build Node Modules and Commit
 on:
   push:
     branches:
-      - main # Trigger on pushes to the main branch
+      - main # Adjust to your branch name
   workflow_dispatch: # Allows manual triggering
 
 jobs:
@@ -21,7 +21,7 @@ jobs:
         cache: 'npm'
 
     - name: Install dependencies
-      run: npm install
+      run: npm install --legacy-peer-deps # Use this to avoid lock file issues
 
     - name: Copy node_modules to root directory
       run: cp -r node_modules ../

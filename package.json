@@ -6,5 +6,8 @@
   "scripts": {
     "build": "echo 'No build step required'",
     "start": "echo 'No start script needed for Cloudflare Pages'"
+  },
+  "dependencies": {
+    "luxon": "^3.4.0"
   }
 }
