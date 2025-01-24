@@ -1,14 +1,29 @@
 // Cache the list of supported timezones to avoid redundant calls
 const validTimezones = Intl.supportedValuesOf('timeZone');
 
-// In-memory cache for storing responses to frequently requested timezones
-// Note: Suitable for serverless environments with short-lived instances
+// In-memory cache for storing responses with expiration timestamps
 const responseCache = new Map();
 
 // Rate limiting configuration
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
 const RATE_LIMIT_MAX_REQUESTS = 100;
 const rateLimitMap = new Map();
+
+/**
+ * Helper function to generate a unique cache key based on query parameters
+ * @param {string} url - The full request URL
+ * @returns {string} - A unique cache key
+ */
+function generateCacheKey(url) {
+  // Extract search params from the URL
+  const params = new URL(url).searchParams;
+
+  // Sort the keys to ensure consistency (e.g., `timezone=Asia/Tokyo&format=json` === `format=json&timezone=Asia/Tokyo`)
+  const sortedKeys = [...params.keys()].sort();
+
+  // Build the cache key by joining sorted key-value pairs
+  return sortedKeys.map(key => `${key}=${params.get(key)}`).join('&');
+}
 
 /**
  * Handles incoming HTTP requests to fetch timezone information.
@@ -33,9 +48,27 @@ export async function onRequest(context) {
     });
   }
 
+  // Generate a unique cache key based on the URL and query parameters
+  const cacheKey = generateCacheKey(request.url);
+
+  // Check if a response for this cacheKey exists and is still valid
+  const currentTime = Date.now();
+  if (responseCache.has(cacheKey)) {
+    const { response, timestamp } = responseCache.get(cacheKey);
+    if (currentTime - timestamp <= 1000) { // Cache valid for 1 second
+      return new Response(JSON.stringify(response, null, 2), {
+        status: 200,
+        headers: { 
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=1", // Cache for 1 second
+          ...corsHeaders,
+        },
+      });
+    }
+  }
+
   // Implement Rate Limiting
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-  const currentTime = Date.now();
   const rateData = rateLimitMap.get(ip) || { count: 0, last: currentTime };
 
   if (currentTime - rateData.last < RATE_LIMIT_WINDOW_MS) {
@@ -93,19 +126,6 @@ export async function onRequest(context) {
     });
   }
 
-  // Check if response for this timezone is cached
-  if (responseCache.has(timezone)) {
-    const cachedResponse = responseCache.get(timezone);
-    return new Response(JSON.stringify(cachedResponse, null, 2), {
-      status: 200,
-      headers: { 
-        "Content-Type": "application/json",
-        "Cache-Control": "public, max-age=3600", // Cache for 1 hour
-        ...corsHeaders,
-      },
-    });
-  }
-
   try {
     // Get current UTC time
     const utcDate = new Date();
@@ -142,23 +162,20 @@ export async function onRequest(context) {
       timestamp_milliseconds: utcDate.getTime(),
     };
 
-    // Cache the response for future requests
-    responseCache.set(timezone, response);
+    // Store the response in the cache with the cacheKey
+    responseCache.set(cacheKey, { response, timestamp: currentTime });
 
-    // Return the response with appropriate headers
     return new Response(JSON.stringify(response, null, 2), {
       status: 200,
       headers: { 
         "Content-Type": "application/json",
-        "Cache-Control": "public, max-age=3600", // Cache for 1 hour
+        "Cache-Control": "public, max-age=1", // Cache for 1 second
         ...corsHeaders,
       },
     });
   } catch (error) {
-    // Log the error for debugging purposes (optional)
-    console.error(`Error processing timezone '${timezone}':`, error);
+    console.error(`Error processing request for key '${cacheKey}':`, error);
 
-    // Return a 500 Internal Server Error response
     return new Response(JSON.stringify({ error: "Internal Server Error. Please try again later." }), {
       status: 500,
       headers: { 
