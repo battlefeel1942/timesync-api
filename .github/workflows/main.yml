@@ -1,9 +1,9 @@
-name: Build and Add Luxon
+name: Install and Commit Dependencies
 
 on:
   push:
     branches:
-      - main
+      - main # Trigger on pushes to the main branch
   workflow_dispatch: # Allow manual trigger
 
 jobs:
@@ -17,14 +17,18 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: 16
+        node-version: 16 # Specify Node.js version
         cache: 'npm'
 
     - name: Install dependencies
       run: npm install
 
-    - name: Install Luxon
-      run: npm install luxon --save
+    - name: Install additional dependencies
+      # Optional: Add any additional dependency via a workflow input or edit directly
+      run: |
+        if [ -n "${{ github.event.inputs.package }}" ]; then
+          npm install ${{ github.event.inputs.package }} --save
+        fi
 
     - name: Commit changes
       env:
@@ -32,6 +36,11 @@ jobs:
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
-        git add package-lock.json package.json node_modules
-        git commit -m "Add luxon and generate package-lock.json"
-        git push
+        git add package.json package-lock.json node_modules
+        git status
+        if git diff-index --quiet HEAD --; then
+          echo "No changes to commit."
+        else
+          git commit -m "Install dependencies and update package-lock.json"
+          git push
+        fi
