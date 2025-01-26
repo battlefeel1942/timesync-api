@@ -4,7 +4,7 @@
   "description": "",
   "main": "functions/api.js",
   "scripts": {
-    "build": "echo 'No build step required'",
+    "build": "mkdir -p build && cp -r public/* build/",
     "start": "echo 'No start script needed for Cloudflare Pages'"
   },
   "dependencies": {
