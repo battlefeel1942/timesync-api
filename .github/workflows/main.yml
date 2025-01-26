@@ -1,4 +1,4 @@
-name: Install and Commit Dependencies
+name: Install, Commit Dependencies, and Build
 
 on:
   push:
@@ -7,40 +7,49 @@ on:
   workflow_dispatch: # Allow manual trigger
 
 jobs:
-  install-dependencies:
+  install-dependencies-and-build:
     runs-on: ubuntu-latest
 
     steps:
+    # Step 1: Checkout repository
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    # Step 2: Set up Node.js
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
         node-version: 16 # Specify Node.js version
         cache: 'npm'
 
+    # Step 3: Install dependencies
     - name: Install dependencies
       run: npm install
 
+    # Step 4: Install additional dependencies
+    # Optionally allow adding additional dependencies dynamically
     - name: Install additional dependencies
-      # Optional: Add any additional dependency via a workflow input or edit directly
       run: |
         if [ -n "${{ github.event.inputs.package }}" ]; then
           npm install ${{ github.event.inputs.package }} --save
         fi
 
-    - name: Commit changes
+    # Step 5: Build static files
+    - name: Build project
+      run: npm run build
+
+    # Step 6: Commit the build folder to the repository
+    - name: Commit and push build folder
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
-        git add package.json package-lock.json node_modules
+        git add build/
         git status
         if git diff-index --quiet HEAD --; then
           echo "No changes to commit."
         else
-          git commit -m "Install dependencies and update package-lock.json"
+          git commit -m "Build and add updated build folder"
           git push
         fi
